@@ -1,59 +1,59 @@
 ---
 name: clearance
-description: QA release gate with modes - generates and runs unit tests, runs and self-heals a Playwright UI suite, runs security scans, and merges findings into a release verdict. Use when asked to run clearance, gate a release, or check whether a build is cleared for departure.
+description: QA release gate with modes - generates and runs unit tests, drives a live browser against a self-healing UI spec, runs security scans, and merges findings into a release verdict. Use when asked to run clearance, gate a release, or check whether a build is cleared for departure.
 ---
 
 # Clearance
 
 A release gate. Each mode produces findings; `report` turns them into a verdict.
 
-## Parsing the mode argument
-
+## The mode argument
 Read the argument after `/clearance`. Match one of `unit`, `ui`, `security`,
-`report`. If the argument is empty or unrecognized, run the **full run**:
-`unit` -> `ui` -> `security` -> `report`, in that order, each to completion
-before the next. An unrecognized argument is a full run plus a note saying so.
+`report`. If it is empty or unrecognized, run the **full run**: `unit` -> `ui`
+-> `security` -> `report`, each to completion before the next. An unrecognized
+argument is a full run plus a note saying so.
+
+## Project detection
+
+Clearance assumes nothing about the stack. Before any mode works, read
+`.clearance/profile.json`; if absent, follow `detection.md` to build it. Every
+path, runner, and command comes from that profile, never from a name hardcoded
+here.
 
 ## Hard constraint
 
-**The UI suite NEVER leaves `.clearance/`.** Clearance owns it; it is not a
-repo deliverable - and neither are findings, the baseline, or the report.
-Generated unit tests are the exception: they are a deliverable and belong in
-the repo at `tests/unit/`. Application *source* stays read-only to every mode -
-Clearance never edits `app/`.
+**Clearance keeps no UI test code anywhere.** The UI gate is a declarative spec
+under `.clearance/`; its browser driver is built per run in the scratchpad and
+discarded. Findings, baseline, and report stay in `.clearance/` too. Generated
+unit tests are the one repo deliverable, written to the project's own test
+location (`unit.test_dir`). Source is read-only to all modes.
 
 ## State contract
 
 Fixed paths. Do not invent others.
-
 ```
 .clearance/findings/unit.json       unit mode findings
 .clearance/findings/ui.json         ui mode findings
 .clearance/findings/security.json   security mode findings
-tests/unit/                         generated unit tests (repo deliverable)
-.clearance/tests/ui/                the Playwright suite clearance owns
+<unit.test_dir>/                    generated unit tests (repo deliverable)
+.clearance/profile.json             detected project profile
+.clearance/ui-spec.json             the UI gate, as data - never test code
 .clearance/baseline.json            page structure from the last ui run
 .clearance/report.html              final report
 ```
-
-Every mode writes its own findings file: a JSON array of objects shaped
-
-```json
-{"id": "", "severity": "critical|high|medium|low|info",
- "title": "", "evidence": "", "owasp": ""}
-```
-
-`owasp` is the relevant OWASP identifier, or `null`. A mode that finds nothing
-still writes `[]` - an absent file means the mode has not run. `report` merges whatever exists and states explicitly which
-modes have not been run.
+Every mode writes its findings file as a JSON array of objects shaped
+`{id, severity, title, evidence, owasp}`, where `severity` is one of
+`critical|high|medium|low|info` and `owasp` is the relevant OWASP identifier or
+`null`. A mode that finds nothing still writes `[]` - an absent file means the
+mode has not run, and `report` says so explicitly.
 
 ## Modes
 
-| Mode       | File                | What it does                                            |
-| ---------- | ------------------- | ------------------------------------------------------- |
-| `unit`     | `modes/unit.md`     | Generate and run pytest tests for `app/`                |
-| `ui`       | `modes/ui.md`       | Bootstrap or gate-run the Playwright suite, self-heal   |
-| `security` | `modes/security.md` | Run the probe/secret/log scans, audit `k8s/`            |
-| `report`   | `modes/report.md`   | Merge findings into `.clearance/report.html` + verdict  |
+| Mode       | File                | What it does                                           |
+| ---------- | ------------------- | ------------------------------------------------------ |
+| `unit`     | `modes/unit.md`     | Generate and run unit tests for the detected sources   |
+| `ui`       | `modes/ui.md`       | Drive a live browser against the UI spec, self-heal    |
+| `security` | `modes/security.md` | Run the scans, audit the detected deploy manifests     |
+| `report`   | `modes/report.md`   | Merge findings into `.clearance/report.html` + verdict |
 
-Read the mode file and follow it exactly. For a full run, read each in turn.
+Read the mode file and follow it exactly; for a full run, read each in turn.

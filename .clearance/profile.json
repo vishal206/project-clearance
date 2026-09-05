@@ -1,0 +1,19 @@
+{
+  "language": "python",
+  "source_dirs": ["app"],
+  "priority_targets": ["app/fares.py", "app/main.py", "app/config.py"],
+  "unit": {
+    "runner": "pytest",
+    "command": ".venv/bin/python -m pytest",
+    "test_dir": "tests/unit",
+    "file_pattern": "test_<module>.py"
+  },
+  "ui": {
+    "runner": "playwright-python",
+    "base_url": "http://localhost:8000",
+    "start_command": ".venv/bin/uvicorn app.main:app --port 8000",
+    "ready_path": "/"
+  },
+  "deploy_manifests": ["k8s/deployment.yaml", "k8s/service.yaml"],
+  "notes": "Python/FastAPI detected from requirements.txt (fastapi, uvicorn, jinja2) and app/ package. source_dirs=app from the package holding main.py/fares.py/config.py. priority_targets: fares.py (fare/money math), main.py (routes, auth, PII handling), config.py (holds hardcoded secrets). unit runner=pytest from existing tests/unit dir and .pytest_cache; command uses the repo .venv. ui base_url/start_command from README (uvicorn app.main:app --port 8000, run from project root); app confirmed already up (HTTP 200 on /). playwright-python runner assumed pending confirmation Playwright is installed in .venv. deploy_manifests from k8s/."
+}

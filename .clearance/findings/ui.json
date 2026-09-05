@@ -1,0 +1,9 @@
+[
+  {
+    "id": "ui-bootstrap",
+    "severity": "info",
+    "title": "UI gate bootstrapped this run - results are observations, not gate verdicts",
+    "evidence": "No .clearance/ui-spec.json existed. Built the spec from a live crawl of the FareDesk app (already up on http://localhost:8000) covering /, /login, /search, /booking/{pnr}, and /api/flight-offers, then ran it once with a single-use Playwright driver (discarded after). All 7 flows passed (login-load, login-submit, search-valid, search-no-match, booking-valid, booking-not-found, api-flight-offers), every check on presence+status. No healing performed on a bootstrap run. report should withhold a verdict on the UI gate until a second (GATE) run confirms stability.",
+    "owasp": null
+  }
+]

@@ -1,58 +1,93 @@
 # Mode: ui
 
-Conditional mode. Check `.clearance/tests/ui/` first and take exactly one of the
-two branches below.
+Drive a real browser against the running app. **Clearance does not keep a
+Playwright test suite.** There are no test files to maintain, in this repo or
+under `.clearance/` - the gate is a declarative spec, and the browser driver is
+built fresh each run and thrown away.
 
-## Branch A - BOOTSTRAP (`.clearance/tests/ui/` does not exist)
+Read `.clearance/profile.json` first (build it per `detection.md` if absent) for
+`ui.base_url`, `ui.start_command`, and `ui.ready_path`.
 
-There is no suite yet, so build one. Do **not** heal anything in this branch.
+## How a run works
 
-1. Determine the base URL (ask, or take it from app config / README) and make
-   sure the app is running.
-2. Crawl from the base URL. Discover and record: pages reachable by link, forms
-   and their fields, links, and API routes visible in the source or called by
-   the pages. Stay on the app's own origin.
-3. Generate a Playwright suite into `.clearance/tests/ui/` covering the
-   discovered surface - page loads, form submits with valid and invalid input,
-   navigation. Prefer `get_by_role` and `get_by_test_id` locators from the
-   start.
-4. Write `.clearance/baseline.json`: the page structure observed during the
-   crawl - per URL, the elements the tests target with their roles, accessible
-   names, test ids, and enough surrounding structure to re-identify them later.
-5. Run the suite **once**.
-6. Report as **BOOTSTRAP**. The first run establishes the baseline; its failures
-   are observations, not gate failures.
+1. Bring the app up with `ui.start_command`, wait for `ui.ready_path` to
+   answer, and stop it when the mode ends. If it is already up on
+   `ui.base_url`, use it and leave it running. **Never report failures when the
+   app was never up** - that is an `info` finding about the environment.
+2. Write a single-use Playwright driver to your scratchpad directory, never
+   into the repo or `.clearance/`. It reads `.clearance/ui-spec.json`, walks
+   the steps, and prints one JSON result per check: step id, pass/fail, what
+   was expected, what was observed, and for a failure whether the locator
+   resolved at all.
+3. Execute it, parse the results, delete it. The next run builds a new one.
 
-## Branch B - GATE RUN (`.clearance/tests/ui/` exists)
+The driver is a mechanism, not an artifact. Never ask the user to keep it,
+never reuse a stale copy, and never let it accumulate state between runs.
 
-The suite is the gate. **Never regenerate it.** Never add or delete tests, never
-weaken an assertion.
+## The spec
 
-1. Run the suite.
-2. On a **locator failure** (element not found / not visible / strict-mode
-   violation - not an assertion failure about behavior):
-   a. Run `scripts/snapshot.py` to capture the current page structure.
-   b. Compare it against `.clearance/baseline.json`.
-   c. Identify which element the test intended to target.
-   d. Rewrite only that locator, preferring `get_by_role`, then
-      `get_by_test_id`. Avoid brittle CSS/XPath and nth-child chains.
-   e. Rerun **once**.
-3. **If uncertain which element was intended, do not edit.** Flag it for human
-   review as a finding. An ambiguous match, a plausible-but-different element,
-   or a page whose structure changed beyond recognition are all "uncertain".
-4. An assertion failure about behavior is a real failure. Never heal it.
+`.clearance/ui-spec.json` is the gate: pages, flows, and expectations as data.
+Roughly - keep the shape stable across runs:
+
+```json
+{"flows": [{"id": "search-valid", "page": "/search",
+  "steps": [{"action": "fill", "target": {"by": "label", "value": "Origin"}, "with": "CDG"},
+            {"action": "click", "target": {"by": "role", "role": "button", "name": "Search"}}],
+  "expect": [{"check": "status", "value": 200},
+             {"check": "visible", "target": {"by": "role", "role": "row"}}]}]}
+```
+
+Targets are addressed by `role`, `label`, or `test_id`. A CSS or XPath target
+is a last resort and must carry a `why` field. Every expectation states what a
+passing state looks like: an emptiness check alone (`count: 0`, "no error
+shown") also passes on a crash or a 404, so pair it with the expected status or
+a visible element.
+
+## Branch A - BOOTSTRAP (no `.clearance/ui-spec.json`)
+
+1. Confirm the app answers on `ui.base_url`.
+2. Crawl from there with the browser. Record pages reachable by link, forms and
+   their fields, links, and API routes the pages call. Stay on the app's origin.
+3. Write `.clearance/ui-spec.json` covering that surface - page loads, form
+   submits with valid and invalid input, navigation - and `.clearance/baseline.json`
+   with the observed structure per URL: roles, accessible names, test ids, form
+   fields, and enough surrounding context to re-identify an element later.
+4. Run the spec once. Report as **BOOTSTRAP**: first-run results are
+   observations, not gate failures. Do not heal.
+
+## Branch B - GATE RUN (the spec exists)
+
+The spec is the gate. **Never regenerate it**, never delete a flow, never
+weaken an expectation to make a run pass.
+
+1. Execute every flow.
+2. On a **locator failure** (target not found, not visible, or ambiguous - not
+   an expectation that failed on behavior):
+   a. Capture the live page structure with the driver.
+   b. Compare against `.clearance/baseline.json`.
+   c. Identify which element the flow intended.
+   d. Rewrite **only that target** in the spec, preferring `role`, then
+      `test_id`, then `label`.
+   e. Rerun that flow once.
+3. **If uncertain which element was intended, do not edit.** Flag it for review.
+   An ambiguous match, a plausible-but-different element, or a page changed
+   beyond recognition are all "uncertain".
+4. An expectation that fails on behavior is a real failure. Never heal it.
+
+Healing edits data, never code - which is the point of keeping the gate
+declarative. A heal is a one-line change to a target, reviewable in a diff.
 
 ## Healing log
 
-Log every heal attempt, healed or not, and carry it into the findings file so
-`report` can render it. Per entry: test and line, old locator, new locator,
-reasoning for believing they are the same element, and the rerun outcome.
+Log every heal attempt, healed or not: flow and step id, old target, new
+target, the reasoning for believing they are the same element, and the rerun
+outcome. Carry it into the findings so `report` can render it.
 
 ## Findings
 
 Write `.clearance/findings/ui.json` - a JSON array of
-`{id, severity, title, evidence, owasp}`. Include failing tests, locators
-flagged for review (uncertain, unhealed), heals that were applied, and for a
-bootstrap run one `info` finding stating that this was a BOOTSTRAP run so
-`report` can withhold a verdict. `owasp` is normally `null`. Write `[]` if
-nothing was found. Always write the file.
+`{id, severity, title, evidence, owasp}`: failed expectations, targets flagged
+for review, heals applied, and any flow that passes only by asserting absence
+(a gate that cannot see a crash is itself a defect). On a bootstrap run include
+one `info` finding saying so, so `report` withholds a verdict. `owasp` is
+normally `null`. Write `[]` if nothing was found. Always write the file.

@@ -1,0 +1,84 @@
+{
+  "base_url": "http://localhost:8000",
+  "flows": [
+    {
+      "id": "login-load",
+      "page": "/",
+      "steps": [],
+      "expect": [
+        {"check": "status", "value": 200},
+        {"check": "visible", "target": {"by": "role", "role": "heading", "name": "Agent sign in"}},
+        {"check": "visible", "target": {"by": "role", "role": "button", "name": "Sign in"}}
+      ]
+    },
+    {
+      "id": "login-submit",
+      "page": "/",
+      "steps": [
+        {"action": "fill", "target": {"by": "label", "value": "Agent e-mail"}, "with": "agent@faredesk.test"},
+        {"action": "fill", "target": {"by": "label", "value": "Password"}, "with": "hunter2"},
+        {"action": "click", "target": {"by": "role", "role": "button", "name": "Sign in"}}
+      ],
+      "expect": [
+        {"check": "status", "value": 200},
+        {"check": "url_contains", "value": "/search"},
+        {"check": "visible", "target": {"by": "role", "role": "button", "name": "Search"}}
+      ]
+    },
+    {
+      "id": "search-valid",
+      "page": "/search",
+      "steps": [
+        {"action": "fill", "target": {"by": "label", "value": "Origin"}, "with": "CDG"},
+        {"action": "fill", "target": {"by": "label", "value": "Destination"}, "with": "MAD"},
+        {"action": "click", "target": {"by": "role", "role": "button", "name": "Search"}}
+      ],
+      "expect": [
+        {"check": "status", "value": 200},
+        {"check": "visible", "target": {"by": "css", "value": "table.grid", "why": "results grid has no ARIA role or test id; class is the only stable handle observed in baseline"}},
+        {"check": "min_count", "target": {"by": "role", "role": "row"}, "value": 2}
+      ]
+    },
+    {
+      "id": "search-no-match",
+      "page": "/search",
+      "steps": [
+        {"action": "fill", "target": {"by": "label", "value": "Origin"}, "with": "ZZZ"},
+        {"action": "fill", "target": {"by": "label", "value": "Destination"}, "with": "QQQ"},
+        {"action": "click", "target": {"by": "role", "role": "button", "name": "Search"}}
+      ],
+      "expect": [
+        {"check": "status", "value": 200},
+        {"check": "visible", "target": {"by": "css", "value": "table.grid", "why": "app falls back to showing all flights on no match; assert the grid renders rather than a crash"}}
+      ]
+    },
+    {
+      "id": "booking-valid",
+      "page": "/booking/ABC101",
+      "steps": [],
+      "expect": [
+        {"check": "status", "value": 200},
+        {"check": "visible", "target": {"by": "role", "role": "heading", "name": "Booking record ABC101"}},
+        {"check": "visible", "target": {"by": "role", "role": "link", "name": "Back to availability"}}
+      ]
+    },
+    {
+      "id": "booking-not-found",
+      "page": "/booking/ZZZ999",
+      "steps": [],
+      "expect": [
+        {"check": "status", "value": 404},
+        {"check": "text", "value": "PNR ZZZ999 not found"}
+      ]
+    },
+    {
+      "id": "api-flight-offers",
+      "page": "/api/flight-offers?origin=CDG&destination=MAD",
+      "steps": [],
+      "expect": [
+        {"check": "status", "value": 200},
+        {"check": "json_path_equals", "path": "meta.count", "value": 2}
+      ]
+    }
+  ]
+}

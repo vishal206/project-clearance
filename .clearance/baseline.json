@@ -1,0 +1,63 @@
+{
+  "captured_at": "2026-09-05",
+  "base_url": "http://localhost:8000",
+  "pages": {
+    "/": {
+      "title": "Sign in - FareDesk",
+      "elements": [
+        {"role": "heading", "name": "Agent sign in", "level": 1},
+        {"role": "textbox", "name": "Agent e-mail", "id": "email", "input_name": "email", "type": "text"},
+        {"role": "textbox", "name": "Password", "id": "password", "input_name": "password", "type": "password"},
+        {"role": "button", "name": "Sign in", "type": "submit"}
+      ],
+      "forms": [
+        {"method": "post", "action": "/login", "fields": ["email", "password"]}
+      ],
+      "links": []
+    },
+    "/login": {
+      "method": "post",
+      "behavior": "303 redirect to /search?origin=CDG&destination=MAD&date=2026-10-02",
+      "accepts_empty_credentials": true
+    },
+    "/search": {
+      "title": "Availability - FareDesk",
+      "elements": [
+        {"role": "heading", "name_pattern": "Availability", "level": 1},
+        {"role": "textbox", "name": "Origin", "id": "origin", "input_name": "origin"},
+        {"role": "textbox", "name": "Destination", "id": "destination", "input_name": "destination"},
+        {"role": "textbox", "name": "Date", "id": "date", "input_name": "date"},
+        {"role": "button", "name": "Search", "type": "submit"},
+        {"selector": "table.grid", "structure": "thead columns: Offer, Carrier, Flight, Route, Depart, Arrive, Cabin, Seats, Total; tbody rows class=fl-row-3a"}
+      ],
+      "forms": [
+        {"method": "get", "action": "/search", "fields": ["origin", "destination", "date"]}
+      ],
+      "links": [
+        {"role": "link", "name": "ABC101", "href": "/booking/ABC101"},
+        {"role": "link", "name": "ABC102", "href": "/booking/ABC102"},
+        {"role": "link", "name": "ABC103", "href": "/booking/ABC103"},
+        {"role": "link", "name": "ABC104", "href": "/booking/ABC104"},
+        {"role": "link", "name": "ABC105", "href": "/booking/ABC105"}
+      ]
+    },
+    "/booking/{pnr}": {
+      "title_pattern": "PNR {pnr} - FareDesk",
+      "valid_pnrs": ["ABC101", "ABC102", "ABC103", "ABC104", "ABC105"],
+      "elements": [
+        {"role": "heading", "name_pattern": "Booking record {pnr}", "level": 1},
+        {"role": "heading", "name": "Itinerary", "level": 2},
+        {"selector": "table.kv", "structure": "passenger, dob, passport, nationality, email, phone; itinerary segment, offer, seat, baggage, pax, total"},
+        {"role": "link", "name": "Back to availability", "href": "/search"}
+      ],
+      "not_found_behavior": "unknown PNR returns 404 with text 'PNR {pnr} not found'"
+    },
+    "/api/flight-offers": {
+      "method": "get",
+      "content_type": "application/json",
+      "params": ["origin", "destination"],
+      "response_shape": {"meta": {"count": "int", "source": "amadeus base url"}, "data": [{"offerId": "", "carrierCode": "", "flightNumber": "", "itinerary": {}, "cabin": "", "seatsRemaining": "", "price": {}}]},
+      "counts": {"unfiltered": 6, "CDG_MAD": 2}
+    }
+  }
+}
