@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Availability - FareDesk{% endblock %}
+{% block content %}
+<h1>Availability {{ origin|safe }} &rarr; {{ destination }}</h1>
+<p class="note">Departure {{ date_label }} &middot; {{ results|length }} offer(s)</p>
+
+<form method="get" action="/search" class="panel inline">
+  <label for="origin">Origin</label>
+  <input type="text" id="origin" name="origin" value="{{ origin }}" size="8">
+
+  <label for="destination">Destination</label>
+  <input type="text" id="destination" name="destination" value="{{ destination }}" size="8">
+
+  <label for="date">Date</label>
+  <input type="text" id="date" name="date" value="{{ date }}" size="12">
+
+  <button type="submit">Search</button>
+</form>
+
+<table class="grid">
+  <thead>
+    <tr>
+      <th>Offer</th>
+      <th>Carrier</th>
+      <th>Flight</th>
+      <th>Route</th>
+      <th>Depart</th>
+      <th>Arrive</th>
+      <th>Cabin</th>
+      <th>Seats</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for r in results %}
+    <tr class="fl-row-3a">
+      <td>{{ r.id }}</td>
+      <td>{{ r.carrier }}</td>
+      <td>{{ r.flight_number }}</td>
+      <td>{{ r.origin }}-{{ r.destination }}</td>
+      <td>{{ r.depart }}</td>
+      <td>{{ r.arrive }}</td>
+      <td>{{ r.cabin }}</td>
+      <td>{{ r.seats_left }}</td>
+      <td>{{ r.total }} {{ r.currency }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<p class="note">Recent PNRs:
+  <a href="/booking/ABC101">ABC101</a>
+  <a href="/booking/ABC102">ABC102</a>
+  <a href="/booking/ABC103">ABC103</a>
+  <a href="/booking/ABC104">ABC104</a>
+  <a href="/booking/ABC105">ABC105</a>
+</p>
+{% endblock %}

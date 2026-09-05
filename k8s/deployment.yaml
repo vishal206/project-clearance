@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: faredesk-booking
+  namespace: faredesk
+  labels:
+    app.kubernetes.io/name: faredesk-booking
+    app.kubernetes.io/component: booking-api
+    app.kubernetes.io/part-of: faredesk
+spec:
+  replicas: 3
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: faredesk-booking
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: faredesk-booking
+        app.kubernetes.io/component: booking-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9102"
+        prometheus.io/path: /metrics
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: default
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+      containers:
+        - name: booking-api
+          image: registry.internal.faredesk.io/faredesk/booking-api:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: metrics
+              containerPort: 9102
+              protocol: TCP
+          securityContext:
+            privileged: true
+            runAsUser: 0
+            allowPrivilegeEscalation: true
+            readOnlyRootFilesystem: false
+            capabilities:
+              add:
+                - NET_ADMIN
+                - SYS_ADMIN
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: LOG_LEVEL
+              value: info
+            - name: HTTP_PORT
+              value: "8080"
+            - name: METRICS_PORT
+              value: "9102"
+            - name: BOOKING_DB_HOST
+              value: postgres.faredesk.svc.cluster.local
+            - name: BOOKING_DB_NAME
+              value: faredesk_booking
+            - name: REDIS_URL
+              value: redis://redis.faredesk.svc.cluster.local:6379/2
+            - name: AMADEUS_API_BASE_URL
+              value: https://api.amadeus.com/v2
+            - name: AMADEUS_API_KEY
+              value: "yQ3nR8wLpV2cKd7T"
+            - name: AMADEUS_API_SECRET
+              value: "8fT2xQvN4mZs9LbW3hJdA6yPkR1uEoCg"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: config
+              mountPath: /etc/faredesk
+              readOnly: true
+            - name: cache
+              mountPath: /var/cache/faredesk
+      volumes:
+        - name: config
+          configMap:
+            name: faredesk-booking-config
+        - name: cache
+          emptyDir: {}

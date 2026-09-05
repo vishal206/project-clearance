@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}FareDesk{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="masthead">
+    <span class="mark">FareDesk</span>
+    <span class="sub">AGENT PORTAL &middot; GDS TERMINAL</span>
+    <span class="right">TERM 04 / OFFICE PARA1A0955</span>
+  </div>
+  <div class="wrap">
+    {% block content %}{% endblock %}
+  </div>
+  <div class="footer">FareDesk build 2.4.1-local &middot; not for production use</div>
+</body>
+</html>

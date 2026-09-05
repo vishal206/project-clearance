@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: faredesk-booking
+  namespace: faredesk
+  labels:
+    app.kubernetes.io/name: faredesk-booking
+    app.kubernetes.io/component: booking-api
+    app.kubernetes.io/part-of: faredesk
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: faredesk-booking
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+    - name: metrics
+      port: 9102
+      targetPort: 9102
+      protocol: TCP

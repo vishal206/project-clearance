@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}PNR {{ b.pnr }} - FareDesk{% endblock %}
+{% block content %}
+<h1>Booking record {{ b.pnr }}</h1>
+<p class="note">Status {{ b.status }}</p>
+
+<table class="kv">
+  <tr><th>Passenger</th><td>{{ b.passenger_name }}</td></tr>
+  <tr><th>Date of birth</th><td>{{ b.dob }}</td></tr>
+  <tr><th>Passport</th><td>{{ b.passport }}</td></tr>
+  <tr><th>Nationality</th><td>{{ b.nationality }}</td></tr>
+  <tr><th>E-mail</th><td>{{ b.email }}</td></tr>
+  <tr><th>Phone</th><td>{{ b.phone }}</td></tr>
+</table>
+
+<h2>Itinerary</h2>
+<table class="kv">
+  <tr><th>Segment</th><td>{{ b.itinerary }}</td></tr>
+  <tr><th>Offer</th><td>{{ b.flight_id }}</td></tr>
+  <tr><th>Seat</th><td>{{ b.seat }}</td></tr>
+  <tr><th>Baggage</th><td>{{ b.baggage_kg }} kg</td></tr>
+  <tr><th>Passengers</th><td>{{ b.pax }}</td></tr>
+  <tr><th>Total paid</th><td>{{ b.total_paid }} EUR</td></tr>
+</table>
+
+<p class="note"><a href="/search">Back to availability</a></p>
+{% endblock %}

@@ -1,0 +1,82 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #ffffff;
+  color: #111111;
+  font-family: "DejaVu Sans Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.masthead {
+  background: #1b3a5c;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-bottom: 2px solid #0d1f31;
+}
+
+.masthead .mark { font-weight: bold; letter-spacing: 1px; }
+.masthead .sub { margin-left: 12px; color: #b9cbdb; font-size: 11px; }
+.masthead .right { float: right; color: #b9cbdb; font-size: 11px; }
+
+.wrap { padding: 14px 12px 40px 12px; }
+
+h1 { font-size: 15px; margin: 0 0 4px 0; text-transform: uppercase; }
+h2 { font-size: 13px; margin: 18px 0 4px 0; text-transform: uppercase; }
+
+.note { color: #555555; font-size: 12px; margin: 0 0 12px 0; }
+
+a { color: #1b3a5c; }
+
+.panel {
+  border: 1px solid #999999;
+  padding: 10px;
+  margin: 0 0 16px 0;
+  max-width: 420px;
+}
+
+.panel.inline { max-width: none; }
+.panel.inline label,
+.panel.inline input,
+.panel.inline button { display: inline-block; margin-right: 8px; }
+
+label { display: block; margin: 6px 0 2px 0; font-size: 12px; }
+
+input {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 3px 5px;
+  border: 1px solid #777777;
+  background: #fbfbf7;
+}
+
+button {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 4px 14px;
+  margin-top: 10px;
+  border: 1px solid #1b3a5c;
+  background: #1b3a5c;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+table { border-collapse: collapse; margin-bottom: 14px; }
+
+.grid { width: 100%; }
+.grid th, .grid td { border: 1px solid #bbbbbb; padding: 3px 7px; text-align: left; }
+.grid th { background: #e6ebef; font-weight: bold; font-size: 11px; text-transform: uppercase; }
+
+.fl-row-3a td { white-space: nowrap; }
+.fl-row-3a:nth-child(even) td { background: #f5f6f7; }
+
+.kv th, .kv td { border: 1px solid #bbbbbb; padding: 3px 7px; text-align: left; }
+.kv th { background: #e6ebef; width: 160px; font-weight: normal; }
+
+.footer {
+  border-top: 1px solid #cccccc;
+  padding: 6px 12px;
+  color: #777777;
+  font-size: 11px;
+}

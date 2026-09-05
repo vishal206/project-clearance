@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Sign in - FareDesk{% endblock %}
+{% block content %}
+<h1>Agent sign in</h1>
+<p class="note">Use your Amadeus agent credentials.</p>
+
+<form method="post" action="/login" class="panel">
+  <label for="email">Agent e-mail</label>
+  <input type="text" id="email" name="email" value="" autocomplete="off">
+
+  <label for="password">Password</label>
+  <input type="password" id="password" name="password" value="" autocomplete="off">
+
+  <button type="submit">Sign in</button>
+</form>
+
+<p class="note">Trouble signing in? Contact the office supervisor on ext. 2210.</p>
+{% endblock %}
