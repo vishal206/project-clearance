@@ -10,24 +10,33 @@ and most thoroughly (every public function, boundary values, error paths,
 rounding and currency edges) before spending effort elsewhere. Then cover the
 remaining modules under `app/` in rough order of how much logic they hold.
 
-Tests are written into `.clearance/tests/unit/`, one test file per source file,
-named `test_<module>.py`. Never write a test into the application repo, never
-modify `app/`, and never touch an existing top-level `tests/` directory.
+Generated unit tests are a repo deliverable. They live in the application repo
+at `tests/unit/`, mirroring the source layout: `app/fares.py` ->
+`tests/unit/test_fares.py`, `app/billing/rates.py` ->
+`tests/unit/billing/test_rates.py`. Clearance still never edits `app/`.
 
 ## Procedure
 
-1. `mkdir -p .clearance/tests/unit .clearance/findings`.
+1. Create `tests/unit/` and `tests/__init__.py` if they are missing (plus
+   `__init__.py` in any subpackage you add under `tests/unit/`). Create
+   `.clearance/findings/` too.
 2. Read each target source file before writing tests for it. Test the behavior
    that is actually there - do not test an imagined API.
-3. Write the tests. Make imports work from `.clearance/tests/unit/` without
-   editing the app: put the repo root on `sys.path` from a `conftest.py` inside
-   `.clearance/tests/unit/`.
-4. Run from that directory, e.g.
-   `python -m pytest .clearance/tests/unit -q --tb=short`.
+3. **Never overwrite an existing test file.** If `tests/unit/test_fares.py`
+   already exists, read it, work out which cases it covers, and *add* the
+   missing ones to it. Preserve every existing test, its name, and its
+   assertions - append, do not rewrite. The same rule holds for any other
+   pre-existing file in `tests/unit/`. Match the file's existing style,
+   imports, and fixtures.
+4. Run pytest from the **repo root**, e.g.
+   `python -m pytest tests/unit -q --tb=short`. Imports of `app.*` resolve from
+   the repo root; add a `conftest.py` only if they do not.
 5. **Two retries on import or syntax failure.** If a test file fails to import
    or does not compile, you may fix and rerun it at most twice. After the second
    retry it stays broken - leave it on disk, count it as never compiled, and
-   record a finding. Do not delete a broken file to improve the numbers.
+   record a finding. Do not delete a broken file to improve the numbers. If the
+   broken file is one you added cases to, revert your additions rather than
+   leaving a pre-existing file uncollectable.
 
 ## Honest pass rate
 
@@ -51,4 +60,6 @@ Write `.clearance/findings/unit.json` - a JSON array of
 - a summary finding carrying the pass rate, `severity: "info"`
 
 `owasp` is `null` for ordinary test failures; set it when a failure shows an
-actual security defect. Write `[]` if nothing was found. Always write the file.
+actual security defect. Findings always go to `.clearance/findings/unit.json` -
+never into the repo alongside the tests. Write `[]` if nothing was found.
+Always write the file.

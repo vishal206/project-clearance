@@ -16,10 +16,11 @@ before the next. An unrecognized argument is a full run plus a note saying so.
 
 ## Hard constraint
 
-**Clearance NEVER writes test code, fixtures, config, or output into the
-application repo.** Everything Clearance creates lives under `.clearance/`.
-Application source is read-only to every mode. If a mode seems to need a file
-outside `.clearance/`, it does not - record a finding instead.
+**The UI suite NEVER leaves `.clearance/`.** Clearance owns it; it is not a
+repo deliverable - and neither are findings, the baseline, or the report.
+Generated unit tests are the exception: they are a deliverable and belong in
+the repo at `tests/unit/`. Application *source* stays read-only to every mode -
+Clearance never edits `app/`.
 
 ## State contract
 
@@ -29,7 +30,7 @@ Fixed paths. Do not invent others.
 .clearance/findings/unit.json       unit mode findings
 .clearance/findings/ui.json         ui mode findings
 .clearance/findings/security.json   security mode findings
-.clearance/tests/unit/              generated unit tests
+tests/unit/                         generated unit tests (repo deliverable)
 .clearance/tests/ui/                the Playwright suite clearance owns
 .clearance/baseline.json            page structure from the last ui run
 .clearance/report.html              final report
